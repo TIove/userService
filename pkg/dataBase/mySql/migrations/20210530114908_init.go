@@ -10,7 +10,7 @@ func init() {
 }
 
 func upInit(tx *sql.Tx) error {
-	_, err := tx.Exec("CREATE TABLE users (id INTEGER NOT NULL PRIMARY KEY, name TEXT NOT NULL, birthday DATETIME NOT NULL)")
+	_, err := tx.Exec("CREATE TABLE users (id BINARY(36) NOT NULL PRIMARY KEY, name TEXT NOT NULL, birthday DATETIME NOT NULL)")
 	if err != nil {
 		return err
 	}

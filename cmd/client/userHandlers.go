@@ -2,13 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/google/uuid"
 	"net/http"
 	"strconv"
 	"userService/cmd/client/mappers"
 	"userService/pkg/models/requestModels"
 )
-
-var Id = 1 // TODO use UUID
 
 func (app *Application) create(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
@@ -31,11 +30,10 @@ func (app *Application) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbUser := mappers.DbUserMap(userRequest, Id)
-	Id++
+	dbUser := mappers.DbUserMap(userRequest, uuid.New())
 
 	userId, err := app.Db.Insert(dbUser)
-	w.Write([]byte("User with id = " + strconv.Itoa(userId) + " was created"))
+	w.Write([]byte("User with id = " + userId.String() + " was created"))
 }
 
 func (app *Application) get(w http.ResponseWriter, r *http.Request) {
@@ -68,7 +66,7 @@ func (app *Application) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	requestId, err := strconv.Atoi(r.URL.Query().Get("id"))
+	requestId, err := uuid.Parse(r.URL.Query().Get("id"))
 	if err != nil {
 		app.serverError(w, err, http.StatusBadRequest)
 		return
@@ -80,5 +78,5 @@ func (app *Application) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte("User with userId = " + strconv.Itoa(requestId) + " was deleted"))
+	w.Write([]byte("User with userId = " + requestId.String() + " was deleted"))
 }

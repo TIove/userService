@@ -1,9 +1,12 @@
 package dbModels
 
-import "time"
+import (
+	"github.com/google/uuid"
+	"time"
+)
 
 type User struct {
-	Id       int
+	Id       uuid.UUID
 	Name     string
 	Birthday time.Time
 }
