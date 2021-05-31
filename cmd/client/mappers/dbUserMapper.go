@@ -7,8 +7,8 @@ import (
 
 func DbUserMap(userRequest CreateUserRequest, id int) User {
 	return User{
-		Id: id,
-		Name: userRequest.Name,
+		Id:       id,
+		Name:     userRequest.Name,
 		Birthday: userRequest.Birthday,
 	}
 }
