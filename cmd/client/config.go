@@ -1,9 +1,9 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"os"
+	"userService/pkg/dataBase/mySql"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -14,5 +14,5 @@ var ErrorLog = log.New(os.Stderr, "ERROR\t", log.Ldate|log.LUTC|log.Lshortfile)
 type Application struct {
 	ErrorLog *log.Logger
 	InfoLog  *log.Logger
-	Db       *sql.DB
+	Db       *mySql.UserModel
 }
