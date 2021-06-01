@@ -2,12 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/google/uuid"
 	"net/http"
 	"userService/cmd/client/mappers"
 	"userService/pkg/models/requestModels"
 )
-
-var id = 1 // TODO use UUID
 
 func (app *Application) create(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
@@ -26,14 +25,19 @@ func (app *Application) create(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&userRequest) // TODO add validation
 
 	if err != nil {
-		http.Error(w, err.Error(), 400)
+		app.serverError(w, err, http.StatusBadRequest)
 		return
 	}
 
-	dbUser := mappers.DbUserMap(userRequest, id)
-	id++
+	dbUser := mappers.DbUserMap(userRequest, uuid.New())
 
-	print(dbUser) // TODO add to db
+	_, err = app.Db.Insert(dbUser)
+	if err != nil {
+		app.serverError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	w.Write([]byte("User with id = " + dbUser.Id.String() + " was created"))
 }
 
 func (app *Application) get(w http.ResponseWriter, r *http.Request) {
@@ -42,9 +46,22 @@ func (app *Application) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//requestId := r.URL.Query().Get("id")
+	requestId, err := uuid.Parse(r.URL.Query().Get("id"))
 
-	w.Write([]byte("Hello get user")) // TODO get user
+	if err != nil {
+		app.serverError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	user, err := app.Db.Get(requestId)
+	if err != nil {
+		app.serverError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	jsonUser, err := json.Marshal(user)
+
+	w.Write(jsonUser)
 }
 
 func (app *Application) delete(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +70,17 @@ func (app *Application) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//requestId := r.URL.Query().Get("id")
+	requestId, err := uuid.Parse(r.URL.Query().Get("id"))
+	if err != nil {
+		app.serverError(w, err, http.StatusBadRequest)
+		return
+	}
 
-	w.Write([]byte("Hello delete user")) // TODO delete user
+	result, err := app.Db.Delete(requestId)
+	if err != nil || result == false {
+		app.serverError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	w.Write([]byte("User with userId = " + requestId.String() + " was deleted"))
 }
