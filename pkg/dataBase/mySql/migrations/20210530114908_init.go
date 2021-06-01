@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	goose.AddMigration(upInit, downInit)
+	goose.AddMigration(upInit, downInit) // TODO add goose
 }
 
 func upInit(tx *sql.Tx) error {

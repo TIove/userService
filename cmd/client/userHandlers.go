@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/google/uuid"
 	"net/http"
-	"strconv"
 	"userService/cmd/client/mappers"
 	"userService/pkg/models/requestModels"
 )
@@ -32,8 +31,13 @@ func (app *Application) create(w http.ResponseWriter, r *http.Request) {
 
 	dbUser := mappers.DbUserMap(userRequest, uuid.New())
 
-	userId, err := app.Db.Insert(dbUser)
-	w.Write([]byte("User with id = " + userId.String() + " was created"))
+	_, err = app.Db.Insert(dbUser)
+	if err != nil {
+		app.serverError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	w.Write([]byte("User with id = " + dbUser.Id.String() + " was created"))
 }
 
 func (app *Application) get(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +46,7 @@ func (app *Application) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	requestId, err := strconv.Atoi(r.URL.Query().Get("id"))
+	requestId, err := uuid.Parse(r.URL.Query().Get("id"))
 
 	if err != nil {
 		app.serverError(w, err, http.StatusBadRequest)
@@ -74,7 +78,7 @@ func (app *Application) delete(w http.ResponseWriter, r *http.Request) {
 
 	result, err := app.Db.Delete(requestId)
 	if err != nil || result == false {
-		app.serverError(w, err, http.StatusBadRequest) // TODO add string with description
+		app.serverError(w, err, http.StatusBadRequest)
 		return
 	}
 

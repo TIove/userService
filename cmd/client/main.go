@@ -17,11 +17,11 @@ func main() {
 		"Port of this web service")
 	dbConnection := flag.String(
 		"dbConnection",
-		"root:root@/users?parseTime=true",
+		"root:root@/?parseTime=true",
 		"Database connection string")
 	flag.Parse()
 
-	db, err := openDb(*dbConnection, "mysql")
+	db, err := openDb("mysql", *dbConnection)
 	if err != nil {
 		ErrorLog.Fatal(err)
 	}
@@ -44,8 +44,8 @@ func main() {
 	ErrorLog.Fatal(err)
 }
 
-func openDb(dbConnection string, driverName string) (*sql.DB, error) {
-	db, err := sql.Open(driverName, dbConnection)
+func openDb(driverName string, dbCredentials string) (*sql.DB, error) {
+	db, err := sql.Open(driverName, dbCredentials)
 
 	if err != nil {
 		return nil, err
@@ -54,5 +54,19 @@ func openDb(dbConnection string, driverName string) (*sql.DB, error) {
 		return nil, err
 	}
 
+	createDb(db, "Users")
+
 	return db, err
+}
+
+func createDb(db *sql.DB, dbName string) {
+	_, err := db.Exec("CREATE DATABASE IF NOT EXISTS " + dbName)
+	if err != nil {
+		ErrorLog.Fatal(err)
+	}
+
+	_, err = db.Exec("USE " + dbName)
+	if err != nil {
+		ErrorLog.Fatal(err)
+	}
 }
